@@ -9,10 +9,11 @@
   "name" : "IO::Socket::Netlink",
   "perl" : "6.c",
   "provides" : {
-    "IO::Socket::Netlink" : "lib/IO/Socket/Netlink.pm6"
+    "IO::Socket::Netlink" : "lib/IO/Socket/Netlink.pm6",
+    "IO::Socket::Netlink::Raw" : "lib/IO/Socket/Netlink/Raw.pm6"
   },
   "resources" : [ ],
-  "source-url" : "",
+  "source-url" : "https://www.gogs.templeoffirehazard.duckdns.org/Garland_g/IO-Socket-Netlink.git",
   "tags" : [ ],
   "test-depends" : [ ],
   "version" : "0.0.1"
