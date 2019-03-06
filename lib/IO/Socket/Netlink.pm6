@@ -3,34 +3,27 @@ use IO::Socket::Netlink::Raw :socket, :message;
 use FINALIZER;
 use NativeCall;
 
-unit module IO::Socket::Netlink:ver<0.0.1> is export;
-class IO::Socket::Netlink {
-	has &!unregister;
-	has nl_sock $!sock;
-	submethod BUILD() {
-		$!sock = nl_socket_alloc();
-		if nl_sock ~~ $!sock {
-			$!sock = Failure.new("Could not allocate socket");
-		}
-	}
-	submethod TWEAK() {
-		&!unregister = FINALIZER.register: { .finalize with self };
-	}
-	method !close() {
-		nl_socket_free($!sock);
-		self = IO::Socket::Netlink;
-	}
-	method finalize(\SELF: --> Nil) {
-		&!unregister();
-		self!close();
-		SELF = Nil;
+unit class IO::Socket::Netlink:ver<0.0.1> is export;
+has &!unregister;
+has nl_sock $!sock;
+submethod BUILD() {
+	$!sock = nl_socket_alloc();
+	if nl_sock ~~ $!sock {
+		$!sock = Failure.new("Could not allocate socket");
 	}
 }
-
-class IO::Socket::Netlink::Message is export {
-	
+submethod TWEAK() {
+	&!unregister = FINALIZER.register: { .finalize with self };
 }
-
+method !close() {
+	nl_socket_free($!sock);
+	self = IO::Socket::Netlink;
+}
+method finalize(\SELF: --> Nil) {
+	&!unregister();
+	self!close();
+	SELF = Nil;
+}
 
 =begin pod
 
