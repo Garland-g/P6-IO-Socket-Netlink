@@ -6,10 +6,14 @@ use NativeCall;
 unit class IO::Socket::Netlink:ver<0.0.1> is export;
 has &!unregister;
 has nl_sock $!sock;
-submethod BUILD() {
+
+submethod BUILD(Int :$protocol!, Int :$pid?) {
 	$!sock = nl_socket_alloc();
 	if nl_sock ~~ $!sock {
 		$!sock = Failure.new("Could not allocate socket");
+	}
+	if $pid {
+		nl_socket_set_local_port($!sock, $pid);
 	}
 }
 submethod TWEAK() {
