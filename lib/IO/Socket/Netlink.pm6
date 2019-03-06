@@ -7,6 +7,19 @@ unit class IO::Socket::Netlink:ver<0.0.1> is export;
 has &!unregister;
 has nl_sock $!sock;
 
+#Proxy setup
+has $.auto-ack is rw;
+sub auto-ack() is rw {
+	my Bool $storage = True;
+	Proxy.new:
+		:FETCH => method () { $storage},
+		:STORE => method (Bool $new) {
+			$storage = $new;
+			if $new {nl_socket_enable_auto_ack($!sock)}
+			else {nl_socket_disable_auto_ack($!sock)}
+		};
+}
+
 submethod BUILD(Int :$protocol!, Int :$pid?) {
 	$!sock = nl_socket_alloc();
 	if nl_sock ~~ $!sock {
@@ -18,6 +31,7 @@ submethod BUILD(Int :$protocol!, Int :$pid?) {
 }
 submethod TWEAK() {
 	&!unregister = FINALIZER.register: { .finalize with self };
+	$!auto-ack := auto-ack()
 }
 
 method !close() {
