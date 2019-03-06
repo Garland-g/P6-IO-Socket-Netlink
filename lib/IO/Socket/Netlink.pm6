@@ -19,9 +19,10 @@ submethod BUILD(Int :$protocol!, Int :$pid?) {
 submethod TWEAK() {
 	&!unregister = FINALIZER.register: { .finalize with self };
 }
+
 method !close() {
+	nl_close($!sock);
 	nl_socket_free($!sock);
-	self = IO::Socket::Netlink;
 }
 method finalize(\SELF: --> Nil) {
 	&!unregister();
