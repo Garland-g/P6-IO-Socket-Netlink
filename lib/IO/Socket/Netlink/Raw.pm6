@@ -3,6 +3,21 @@ use NativeCall;
 
 constant \LIB = 'nl-3';
 
+enum NLMSG is export(:socket :message) (
+	NOOP => 0x1,
+	ERROR => 0x2,
+	DONE => 0x3,
+	OVERRUN => 0x4,
+	MIN_TYPE => 0x10,
+);
+
+enum NLM_F is export(:socket :message)(
+	REQUEST => 1,
+	MULTI => 2,
+	ACK => 4,
+	ECHO => 8,
+);
+
 #Pointers, might change to struct later
 class nl_sock is repr('CPointer') is export(:socket) {}
 class nl_msg is repr('CPointer') is export(:message) {}
@@ -15,6 +30,8 @@ class ucred is repr('CPointer') is export(:socket) {}
 sub nl_socket_alloc() returns nl_sock is native(LIB) is export(:socket) { * }
 sub nl_socket_free(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_socket_set_local_port(nl_sock:D, uint32) is native(LIB) is export(:socket) { * }
+sub nl_socket_enable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
+sub nl_socket_disable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_connect(nl_sock:D, int32) returns int32 is native(LIB) is export(:socket) { * }
 sub nl_close(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_sendto(nl_sock:D, Pointer[void], size_t) returns int32 is native(LIB) is export(:socket) { * }
