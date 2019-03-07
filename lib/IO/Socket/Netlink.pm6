@@ -1,19 +1,26 @@
 use v6.d;
 use IO::Socket::Netlink::Raw :socket, :message;
-use FINALIZER;
 use NativeCall;
 
 unit class IO::Socket::Netlink:ver<0.0.1> is export;
-has &!unregister;
 has nl_sock $!sock;
 
 #Proxy setup
 has $.auto-ack is rw;
+#has $.port is rw;
+#sub port() is rw {
+#	Proxy.new:
+#		FETCH => method () { nl_socket_get_local_port($!sock)},
+#		STORE => method (UInt $port) {nl_socket_set_local_port($!sock, $port)};
+#}
+
+method port(UInt $port) {nl_socket_set_local_port($!sock, $port)}
+
 sub auto-ack() is rw {
 	my Bool $storage = True;
 	Proxy.new:
-		:FETCH => method () { $storage},
-		:STORE => method (Bool $new) {
+		FETCH => method () { $storage},
+		STORE => method (Bool $new) {
 			$storage = $new;
 			if $new {nl_socket_enable_auto_ack($!sock)}
 			else {nl_socket_disable_auto_ack($!sock)}
@@ -28,20 +35,44 @@ submethod BUILD(Int :$protocol!, Int :$pid?) {
 	if $pid {
 		nl_socket_set_local_port($!sock, $pid);
 	}
+	if nl_connect($!sock, $protocol) < 0 {
+		$!sock = Failure.new("Could not connect socket");	
+	}
 }
 submethod TWEAK() {
-	&!unregister = FINALIZER.register: { .finalize with self };
-	$!auto-ack := auto-ack()
+	$!auto-ack := auto-ack();
+	#$!port := port();
 }
 
-method !close() {
+method close(\SELF --> Nil) {
 	nl_close($!sock);
 	nl_socket_free($!sock);
-}
-method finalize(\SELF: --> Nil) {
-	&!unregister();
-	self!close();
 	SELF = Nil;
+}
+
+method sockpid() returns Int {
+	return nl_socket_get_fd($!sock);
+}
+
+# Unlike the IO::Socket::Netlink from Perl 5, this reads the hash as a hash, so order is not significant
+method new-message(:%params) returns nl_msg {
+	
+}
+
+method new-request() returns nl_msg {
+
+}
+
+method send-nlmsg(nl_msg:D) {
+	
+}
+
+method recv-nlmsg($msg is rw, Int $maxlen) {
+	
+}
+
+method recv-nlmsgs( @msgs, Int $maxlen) {
+	
 }
 
 =begin pod
