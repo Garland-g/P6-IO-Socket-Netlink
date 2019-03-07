@@ -3,7 +3,7 @@ use NativeCall;
 
 constant \LIB = 'nl-3';
 
-enum NLMSG is export(:socket :message) (
+enum NLMSG is export(:socket :message :enums) (
 	NOOP => 0x1,
 	ERROR => 0x2,
 	DONE => 0x3,
@@ -11,7 +11,7 @@ enum NLMSG is export(:socket :message) (
 	MIN_TYPE => 0x10,
 );
 
-enum NLM_F is export(:socket :message)(
+enum NLM_F is export(:socket :message :enums)(
 	REQUEST => 1,
 	MULTI => 2,
 	ACK => 4,
@@ -20,7 +20,17 @@ enum NLM_F is export(:socket :message)(
 
 #Pointers, might change to struct later
 class nl_sock is repr('CPointer') is export(:socket) {}
-class nl_msg is repr('CPointer') is export(:message) {}
+class nl_msg is repr('CPointer') is export(:message) {
+	method free() {
+		nlmsg_free(self)
+	}
+	method hdr() {
+		nlmsg_hdr(self)
+	}
+	method append(Pointer[void] $data, size_t $len, int32 $pad) {
+		nlmsg_append(self, $data, $len, $pad);
+	}
+}
 class nlmsghdr is repr('CPointer') is export(:message) {}
 class sockaddr_nl is repr('CPointer') is export(:socket) {}
 class ucred is repr('CPointer') is export(:socket) {}
@@ -45,7 +55,7 @@ sub nl_send_auto(nl_sock:D, nl_msg:D) returns int32 is native(LIB) is export(:so
 sub nl_send_sync(nl_sock:D, nl_msg:D) returns int32 is native(LIB) is export(:socket, :message) { * }
 
 sub nl_send_simple(nl_sock:D, int32, int32, Pointer[void], size_t) returns int32 is native(LIB) is export(:socket) { * }
-sub nl_recv(nl_sock:D, sockaddr_nl, Pointer[Str], Pointer[ucred]) returns int32 is native(LIB) is export(:socket) { * }
+sub nl_recv(nl_sock:D, sockaddr_nl, Pointer[void], Pointer[ucred]) returns int32 is native(LIB) is export(:socket) { * }
 sub nl_wait_for_ack(nl_sock:D) returns int32 is native(LIB) is export(:socket) { * }
 
 #Messages
