@@ -55,24 +55,23 @@ method sockpid() returns Int {
 }
 
 # Unlike the IO::Socket::Netlink from Perl 5, this reads the hash as a hash, so order is not significant
-method new-message(:%params) returns nl_msg {
-	
+method new-message(NLMSG $type, NLM_F @flags ) returns nl_msg {
+	nlmsg_alloc_simple($type, [+|] @flags);
 }
 
-method new-request() returns nl_msg {
-
+method send-nlmsg(nl_msg:D $msg --> Int) {
+	nl_complete_msg($!sock, $msg);
+	return nl_send($!sock, $msg);
 }
 
-method send-nlmsg(nl_msg:D) {
-	
+method recv-nlmsg(Int $maxlen) returns Pointer[void] {
+	my ($addr, Pointer[void] $buf, $ucred);
+	nl_recv($!sock, $addr, $buf, $ucred);
+	return $buf;
 }
 
-method recv-nlmsg($msg is rw, Int $maxlen) {
-	
-}
-
-method recv-nlmsgs( @msgs, Int $maxlen) {
-	
+method wait-for-ack() returns Int {
+	nl_wait_for_ack($!sock);
 }
 
 =begin pod
