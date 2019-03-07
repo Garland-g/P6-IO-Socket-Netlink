@@ -29,9 +29,12 @@ class ucred is repr('CPointer') is export(:socket) {}
 #Sockets
 sub nl_socket_alloc() returns nl_sock is native(LIB) is export(:socket) { * }
 sub nl_socket_free(nl_sock:D) is native(LIB) is export(:socket) { * }
+sub nl_socket_get_fd(nl_sock:D) is native(LIB) is export(:socket) { * }
+sub nl_socket_get_local_port(nl_sock:D) returns uint32 is native(LIB) is export(:socket) { * }
 sub nl_socket_set_local_port(nl_sock:D, uint32) is native(LIB) is export(:socket) { * }
 sub nl_socket_enable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_socket_disable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
+sub nl_socket_set_nonblocking(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_connect(nl_sock:D, int32) returns int32 is native(LIB) is export(:socket) { * }
 sub nl_close(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_sendto(nl_sock:D, Pointer[void], size_t) returns int32 is native(LIB) is export(:socket) { * }
