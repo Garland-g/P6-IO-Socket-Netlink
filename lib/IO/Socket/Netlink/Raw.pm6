@@ -2,6 +2,7 @@ use v6.d;
 use NativeCall;
 
 constant \LIB = 'nl-3';
+#constant \HELPER = %?RESOURCES<libraries/ui>;
 
 enum NLMSG is export(:socket :message :enums) (
 	NOOP => 0x1,
@@ -55,7 +56,8 @@ sub nl_send_auto(nl_sock:D, nl_msg:D) returns int32 is native(LIB) is export(:so
 sub nl_send_sync(nl_sock:D, nl_msg:D) returns int32 is native(LIB) is export(:socket, :message) { * }
 
 sub nl_send_simple(nl_sock:D, int32, int32, Pointer[void], size_t) returns int32 is native(LIB) is export(:socket) { * }
-sub nl_recv(nl_sock:D, sockaddr_nl, Pointer[void], Pointer[ucred]) returns int32 is native(LIB) is export(:socket) { * }
+sub nl_recv(nl_sock:D, sockaddr_nl is rw, Pointer is rw, Pointer[ucred] is rw) returns int32 is native(LIB) is export(:socket) { * }
+#sub nl_recv_helper(nl_sock:D, sockaddr_nl, Pointer, Pointer[ucred]) returns int32 is native(HELPER) is export(:socket)
 sub nl_wait_for_ack(nl_sock:D) returns int32 is native(LIB) is export(:socket) { * }
 
 #Messages

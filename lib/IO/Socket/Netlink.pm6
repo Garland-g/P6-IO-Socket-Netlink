@@ -54,7 +54,6 @@ method sockpid() returns Int {
 	return nl_socket_get_fd($!sock);
 }
 
-# Unlike the IO::Socket::Netlink from Perl 5, this reads the hash as a hash, so order is not significant
 method new-message(NLMSG $type, NLM_F @flags ) returns nl_msg {
 	nlmsg_alloc_simple($type, [+|] @flags);
 }
@@ -64,9 +63,16 @@ method send-nlmsg(nl_msg:D $msg --> Int) {
 	return nl_send($!sock, $msg);
 }
 
-method recv-nlmsg(Int $maxlen) returns Pointer[void] {
-	my ($addr, Pointer[void] $buf, $ucred);
+method recv-nlmsg(Int $maxlen) returns Pointer {
+	my sockaddr_nl $addr .= new;
+	my $buf = Pointer.new;
+	my ucred $ucred .= new;
 	nl_recv($!sock, $addr, $buf, $ucred);
+	#send ACK
+	my $msg = nlmsg_alloc_simple(NLMSG::ERROR, 0);
+	nl_send_auto($!sock, $msg);
+	nlmsg_free($msg);
+	#end ACK
 	return $buf;
 }
 
