@@ -2,6 +2,9 @@ use v6.d;
 use NativeCall;
 
 constant \LIB = 'nl-3';
+constant \NL_AUTO_SEQ is export = 0;
+constant \NL_AUTO_PID is export = 0;
+constant \NL_AUTO_PORT is export = 0;
 #constant \HELPER = %?RESOURCES<libraries/ui>;
 
 enum NLMSG is export(:socket :message :enums) (
@@ -20,7 +23,11 @@ enum NLM_F is export(:socket :message :enums)(
 );
 
 #Pointers, might change to struct later
-class nl_sock is repr('CPointer') is export(:socket) {}
+class nl_sock is repr('CPointer') is export(:socket) {
+	method new() {
+		return nl_socket_alloc();
+	}
+}
 class nl_msg is repr('CPointer') is export(:message) {
 	method free() {
 		nlmsg_free(self)
@@ -31,8 +38,18 @@ class nl_msg is repr('CPointer') is export(:message) {
 	method append(Pointer[void] $data, size_t $len, int32 $pad) {
 		nlmsg_append(self, $data, $len, $pad);
 	}
+	method size(int32 $len) {
+		return nlmsg_size($len);
+	}
 }
-class nlmsghdr is repr('CPointer') is export(:message) {}
+class nlmsghdr is repr('CStruct') is export(:message) {
+	has uint32 $.nlmsg-len is rw;
+	has uint16 $.nlmsg-type is rw;
+	has uint16 $.nlmsg-flags is rw;
+	has uint32 $.nlmsg-seq is rw;
+	has uint32 $.nlmsg-pid is rw;
+}
+
 class sockaddr_nl is repr('CPointer') is export(:socket) {}
 class ucred is repr('CPointer') is export(:socket) {}
 
@@ -46,6 +63,11 @@ sub nl_socket_set_local_port(nl_sock:D, uint32) is native(LIB) is export(:socket
 sub nl_socket_enable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_socket_disable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_socket_set_nonblocking(nl_sock:D) is native(LIB) is export(:socket) { * }
+sub nl_join_groups(nl_sock:D, int32) is native(LIB) is export(:socket) { * }
+sub nl_socket_add_membership(nl_sock:D, int32) returns int32 is export(:socket) { * }
+sub nl_socket_drop_membership(nl_sock:D, int32) returns int32 is export(:socket) { * }
+sub nl_socket_add_memberships(nl_sock:D, int32) returns int32 is export(:socket) { * }
+sub nl_socket_drop_memberships(nl_sock:D, int32) returns int32 is export(:socket) { * }
 sub nl_connect(nl_sock:D, int32) returns int32 is native(LIB) is export(:socket) { * }
 sub nl_close(nl_sock:D) is native(LIB) is export(:socket) { * }
 sub nl_sendto(nl_sock:D, Pointer[void], size_t) returns int32 is native(LIB) is export(:socket) { * }
@@ -56,8 +78,7 @@ sub nl_send_auto(nl_sock:D, nl_msg:D) returns int32 is native(LIB) is export(:so
 sub nl_send_sync(nl_sock:D, nl_msg:D) returns int32 is native(LIB) is export(:socket, :message) { * }
 
 sub nl_send_simple(nl_sock:D, int32, int32, Pointer[void], size_t) returns int32 is native(LIB) is export(:socket) { * }
-sub nl_recv(nl_sock:D, sockaddr_nl is rw, Pointer is rw, Pointer[ucred] is rw) returns int32 is native(LIB) is export(:socket) { * }
-#sub nl_recv_helper(nl_sock:D, sockaddr_nl, Pointer, Pointer[ucred]) returns int32 is native(HELPER) is export(:socket)
+sub nl_recv(nl_sock:D, sockaddr_nl is rw, Pointer is rw, ucred is rw) returns int32 is native(LIB) is export(:socket) { * }
 sub nl_wait_for_ack(nl_sock:D) returns int32 is native(LIB) is export(:socket) { * }
 
 #Messages
