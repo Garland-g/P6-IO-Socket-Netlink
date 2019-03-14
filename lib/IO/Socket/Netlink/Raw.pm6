@@ -5,6 +5,7 @@ constant \LIB = 'nl-3';
 constant \NL_AUTO_SEQ is export = 0;
 constant \NL_AUTO_PID is export = 0;
 constant \NL_AUTO_PORT is export = 0;
+constant \AF_NETLINK is export = 16;
 #constant \HELPER = %?RESOURCES<libraries/ui>;
 
 enum NLMSG is export(:socket :message :enums) (
@@ -22,9 +23,104 @@ enum NLM_F is export(:socket :message :enums)(
   ECHO => 8,
 );
 
+class nlmsghdr is repr('CStruct') is export(:message) {
+  has uint32 $.len is rw;
+  has uint16 $.type is rw;
+  has uint16 $.flags is rw;
+  has uint32 $.seq is rw;
+  has uint32 $.pid is rw;
+  method data() returns Pointer[void] {
+    return nlmsg_data(self);
+  }
+  method datalen() returns int32 {
+    return nlmsg_datalen(self);
+  }
+}
+
+class iovec is repr('CStruct') is export(:message) {
+  has Pointer[void] $.base is rw;
+  has size_t $.len is rw;
+}
+
+class sockaddr_nl is repr('CStruct') is export(:socket) {
+  has uint16 $.family is rw = AF_NETLINK;
+  has uint16 $.pad is rw = 0; #unused
+  has uint32 $.pid is rw;
+  has uint32 $.groups is rw;
+}
+class ucred is repr('CStruct') is export(:socket) {
+  has int32 $.pid is rw;
+  has int32 $.uid is rw;
+  has int32 $.gid is rw;
+}
+
+class nl_msg is repr('CStruct') is export(:message) {
+  has int32 $.protocol is rw;
+  has int32 $.flags is rw;
+  has sockaddr_nl $.src is rw;
+  has sockaddr_nl $.dest is rw;
+  has ucred $.creds is rw;
+  has nlmsghdr $.nlh is rw;
+  has size_t $.size is rw;
+
+  multi method new() returns nl_msg {
+    return nlmsg_alloc();
+  }
+  multi method new(int32(NLMSG) :$type!, int32(NLM_F) :$flags!) returns nl_msg {
+    return nlmsg_alloc_simple($type, $flags);
+  }
+  multi method new(size_t :$max!) returns nl_msg {
+    return nlmsg_alloc_size($max);
+  }
+  method free() {
+    nlmsg_free(self)
+  }
+  method size(int32 $len) returns int32 {
+    return nlmsg_size(self, $len);
+  }
+  method total-size(int32 $len) returns int32 {
+    return nlmsg_total_size(self, $len);
+  }
+  method set-default-size(size_t $size) {
+    nlmsg_set_default_size(self, $size);
+  }
+  method padlen(int32 $len) returns int32 {
+    return nlmsg_padlen(self, $len);
+  }
+  method data() returns Pointer[void] {
+    return nlmsg_data(self.hdr);
+  }
+  method datalen() returns int32 {
+    return nlmsg_datalen(self.hdr);
+  }
+  method inherit() returns nl_msg {
+    return nlmsg_inherit(self.hdr);
+  }
+  method reserve(size_t $size, int32 $pad) returns Pointer[void] {
+    return nlmsg_reserve(self, $size, $pad);
+  }
+  method append(Pointer[void] $data, size_t $len, int32 $pad) {
+    nlmsg_append(self, $data, $len, $pad);
+  }
+  method expand(size_t $size) returns int32 {
+    return nlmsg_expand(self, $size);
+  }
+  method put(uint32 $pid, uint32 $seq, int32 $type, int32 $payload, int32 $flags) {
+    nlmsg_put(self, $pid, $seq, $type, $payload, $flags);
+  }
+  method hdr() returns nlmsghdr {
+    return $!nlh;
+  }
+}
+
+class nlmsgerr is repr('CStruct') is export(:message) {
+  has int32 $.error is rw;
+  has nlmsghdr $.msg is rw;
+}
+
 #Pointers, might change to struct later
 class nl_sock is repr('CPointer') is export(:socket) {
-  method new() {
+  method new() returns nl_sock {
     return nl_socket_alloc();
   }
   method free() {
@@ -44,32 +140,6 @@ class nl_sock is repr('CPointer') is export(:socket) {
   }
   multi method port(uint32 $port) {
     nl_socket_set_local_port(self, $port);
-  }
-}
-
-class nlmsghdr is repr('CStruct') is export(:message) {
-  has uint32 $.nlmsg-len is rw;
-  has uint16 $.nlmsg-type is rw;
-  has uint16 $.nlmsg-flags is rw;
-  has uint32 $.nlmsg-seq is rw;
-  has uint32 $.nlmsg-pid is rw;
-}
-
-class sockaddr_nl is repr('CPointer') is export(:socket) {}
-class ucred is repr('CPointer') is export(:socket) {}
-
-class nl_msg is repr('CPointer') is export(:message) {
-  method free() {
-    nlmsg_free(self)
-  }
-  method hdr() {
-    nlmsg_hdr(self)
-  }
-  method append(Pointer[void] $data, size_t $len, int32 $pad) {
-    nlmsg_append(self, $data, $len, $pad);
-  }
-  method size(int32 $len) {
-    return nlmsg_size($len);
   }
   method enable-auto-ack() {
     nl_socket_enable_auto_ack(self);
@@ -170,6 +240,6 @@ sub nlmsg_reserve(nl_msg:D, size_t, int32) returns Pointer[void] is native(LIB) 
 sub nlmsg_append(nl_msg:D, Pointer[void], size_t, int32) returns int32 is native(LIB) is export(:message) { * }
 sub nlmsg_expand(nl_msg:D, size_t) returns int32 is native(LIB) is export(:message) { * }
 sub nlmsg_put(nl_msg:D, uint32, uint32, int32, int32, int32) returns nlmsghdr is native(LIB) is export(:message) { * }
-sub nlmsg_hdr(nl_msg:D) returns nlmsghdr is native(LIB) is export(:message) { * }
-sub nlmsg_get(nl_msg:D) is native(LIB) is export(:message) { * }
+sub nlmsg_hdr(nl_msg:D is rw) returns Pointer[nlmsghdr] is native(LIB) is export(:message) { * }
+#sub nlmsg_get(nl_msg:D) is native(LIB) is export(:message) { * }
 #sub nl_msg_dump(nl_msg:D, FILE desc) is native(LIB) is export(:message) { * }
