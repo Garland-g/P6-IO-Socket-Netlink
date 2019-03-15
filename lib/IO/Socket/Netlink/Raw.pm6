@@ -115,7 +115,13 @@ class nl_msg is repr('CStruct') is export(:message) {
 
 class nlmsgerr is repr('CStruct') is export(:message) {
   has int32 $.error is rw;
-  has nlmsghdr $.msg is rw;
+  HAS nlmsghdr $.msg is rw;
+  multi method msg() returns nlmsghdr {
+    $!msg;
+  }
+  multi method msg(nlmsghdr $msg) {
+    $!msg := $msg;
+  }
 }
 
 #Pointers, might change to struct later

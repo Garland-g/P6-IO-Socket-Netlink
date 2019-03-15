@@ -60,8 +60,8 @@ method send-ack(nlmsghdr $hdr) {
   # Error Code
   my nlmsgerr $buf .= new;
   $buf.error = 0;
-  $buf.msg = $hdr;
-  $msg.append(nativecast(Pointer[void], $buf), $buf.bytes, 4);
+  $buf.msg: $hdr;
+  $msg.append(nativecast(Pointer[void], $buf), nativesizeof(nlmsgerr), 4);
   $!sock.send($msg);
 }
 
@@ -71,7 +71,7 @@ method recv-nlmsg(Int $maxlen) returns nlmsghdr {
   my ucred $ucred .= new;
   my $bytes = $!sock.recv($addr, $p, $ucred);
   return Failure.new("Could not read message") if $bytes < 0;
-  return nativecast(nlmsghdr, $p);
+  return nativecast(Pointer[nlmsghdr], $p).deref;
 }
 
 method recv(Int $maxlen, :$ack) returns Pointer[void] {
@@ -88,7 +88,7 @@ method wait-for-ack() returns Int {
 
 =head1 NAME
 
-IO::Socket::Netlink - blah blah blah
+IO::Socket::Netlink - A Perl6 binding to and wrapper around libnl
 
 =head1 SYNOPSIS
 
@@ -100,7 +100,9 @@ use IO::Socket::Netlink;
 
 =head1 DESCRIPTION
 
-IO::Socket::Netlink is ...
+IO::Socket::Netlink allows communication over netlink sockets to 
+and from the Linux kernel. It supports both the old and new methods
+of group membership.
 
 =head1 AUTHOR
 
