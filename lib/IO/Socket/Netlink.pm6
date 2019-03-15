@@ -1,8 +1,9 @@
 use v6.d;
 use IO::Socket::Netlink::Raw :socket, :message;
+use OO::Monitors;
 use NativeCall;
 
-unit class IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
+unit monitor IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
 has nl_sock $.sock; #allow access to raw methods
 
 method port(UInt $port) { $!sock.set-local-port($port) }
@@ -100,9 +101,9 @@ use IO::Socket::Netlink;
 
 =head1 DESCRIPTION
 
-IO::Socket::Netlink allows communication over netlink sockets to 
-and from the Linux kernel. It supports both the old and new methods
-of group membership.
+IO::Socket::Netlink allows communication over netlink sockets to and from the Linux kernel. It supports both the old and new methods of group membership.
+
+This module does not implement any particular protocol of netlink. Instead it provides a basis for other modules implementing netlink protocols to build off of.
 
 =head1 AUTHOR
 
@@ -113,5 +114,7 @@ Travis Gibson <TGib.Travis@protonmail.com>
 Copyright 2019 Travis Gibson
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
+
+The underlying library in use is libnl-3, which is LGPL v2.1.
 
 =end pod
