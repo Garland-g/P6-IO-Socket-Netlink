@@ -57,9 +57,9 @@ class ucred is repr('CStruct') is export(:socket) {
 class nl_msg is repr('CStruct') is export(:message) {
   has int32 $.protocol is rw;
   has int32 $.flags is rw;
-  has sockaddr_nl $.src is rw;
-  has sockaddr_nl $.dest is rw;
-  has ucred $.creds is rw;
+  HAS sockaddr_nl $.src is rw;
+  HAS sockaddr_nl $.dest is rw;
+  HAS ucred $.creds is rw;
   has nlmsghdr $.nlh is rw;
   has size_t $.size is rw;
 
@@ -74,6 +74,24 @@ class nl_msg is repr('CStruct') is export(:message) {
   }
   method free() {
     nlmsg_free(self)
+  }
+  multi method src() returns sockaddr_nl {
+    $!src;
+  }
+  multi method src(sockaddr_nl $src) {
+    $!src := $src;
+  }
+  multi method dest() returns sockaddr_nl {
+    $!dest;
+  }
+  multi method dest(sockaddr_nl $dest) {
+    $!dest := $dest;
+  }
+  multi method creds() returns ucred {
+    $!creds;
+  }
+  multi method creds(ucred $creds) {
+    $!creds := $creds;
   }
   method size(int32 $len) returns int32 {
     return nlmsg_size(self, $len);
