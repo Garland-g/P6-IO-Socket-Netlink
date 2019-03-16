@@ -8,13 +8,13 @@ has nl_sock $.sock; #allow access to raw methods
 
 method port(UInt $port) { $!sock.set-local-port($port) }
 
-submethod BUILD(Int :$protocol!, Int :$pid?, Int :$groups?, :$auto-ack?) {
+submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack?) {
   $!sock .= new();
   unless $!sock ~~ nl_sock:D {
     $!sock = Failure.new("Could not allocate socket");
   }
-  if $pid {
-    $!sock.set-local-port($pid);
+  if $port {
+    $!sock.set-local-port($port);
   }
   if $groups {
     $!sock.join-groups($groups);
@@ -45,11 +45,7 @@ method send-nlmsg(nl_msg:D $msg --> Int) {
 }
 
 method send-ack(nlmsghdr $hdr) {
-  say "send-ack";
   my $msg = nlmsg_alloc();
-  # Append extends the message as needed without changing existing data.
-  # To add the data on, declare a message with a payload of length 0, then
-  # append to it.
   $msg.put($*PID, $hdr.seq, NLMSG::ERROR, nativesizeof(nlmsghdr), 0);
 
 
