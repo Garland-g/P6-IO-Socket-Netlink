@@ -8,7 +8,7 @@ has nl_sock $.sock; #allow access to raw methods
 
 method port(UInt $port) { $!sock.set-local-port($port) }
 
-submethod BUILD(Int :$protocol!, Int :$pid?, Int :$groups?) {
+submethod BUILD(Int :$protocol!, Int :$pid?, Int :$groups?, :$auto-ack?) {
   $!sock .= new();
   unless $!sock ~~ nl_sock:D {
     $!sock = Failure.new("Could not allocate socket");
@@ -22,12 +22,7 @@ submethod BUILD(Int :$protocol!, Int :$pid?, Int :$groups?) {
   if $!sock.connect($protocol) < 0 {
     $!sock = Failure.new("Could not connect socket");
   }
-}
-
-
-submethod TWEAK() {
-  $!sock.disable-auto-ack;
-  #$!port := port();
+  $!sock.disable-auto-ack if $auto-ack;
 }
 
 method close(\SELF --> Nil) {
@@ -40,7 +35,7 @@ method sockpid() returns Int {
   return $!sock.get-fd;
 }
 
-method new-message(NLMSG $type, NLM_F @flags ) returns nl_msg {
+method new-message(NLMSG $type, @flags ) returns nl_msg {
   nlmsg_alloc_simple($type, [+|] @flags);
 }
 
@@ -96,6 +91,18 @@ IO::Socket::Netlink - A Perl6 binding to and wrapper around libnl
 =begin code :lang<perl6>
 
 use IO::Socket::Netlink;
+use IO::Socket::Netlink::Raw :enums :constants;
+# access to useful enums and constants (probably what you want)
+
+# use IO::Socket::Netlink::Raw :message
+# access to raw message methods, objects, and message components
+# use IO::Socket::Netlink::Raw :socket
+# access to raw socket methods and object
+
+
+my $protocol = 31;
+my $socket = IO::Socket::Netlink.new(:$protocol);
+my $msg = $socket.new-message(NLMSG::DONE, (NLM_F::REQUEST, NLM_F::ACK));
 
 =end code
 
@@ -104,6 +111,8 @@ use IO::Socket::Netlink;
 IO::Socket::Netlink allows communication over netlink sockets to and from the Linux kernel. It supports both the old and new methods of group membership.
 
 This module does not implement any particular protocol of netlink. Instead it provides a basis for other modules implementing netlink protocols to build off of.
+
+This module uses OO::Monitors.
 
 =head1 AUTHOR
 
