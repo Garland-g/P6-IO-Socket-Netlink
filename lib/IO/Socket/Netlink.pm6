@@ -1,10 +1,9 @@
 use v6.d;
 use IO::Socket::Netlink::Raw :socket, :message;
-use OO::Monitors;
 use NativeCall;
 
-unit monitor IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
-has nl_sock $.sock; #allow access to raw methods
+unit class IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
+has nl_sock $.sock;
 
 method port(UInt $port) { $!sock.set-local-port($port) }
 
@@ -35,8 +34,16 @@ method sockpid() returns Int {
   return $!sock.get-fd;
 }
 
-method new-message(NLMSG $type, @flags ) returns nl_msg {
-  nlmsg_alloc_simple($type, [+|] @flags);
+multi method new-message() returns nl_msg {
+  nl_msg.new();
+}
+
+multi method new-message(NLMSG :$type, :@flags ) returns nl_msg {
+  nl_msg.new($type, [+|] @flags);
+}
+
+multi method new-message(UInt :$max) returns nl_msg {
+  nl_msg.new($max);
 }
 
 method send-nlmsg(nl_msg:D $msg --> Int) {
@@ -48,12 +55,11 @@ method send-ack(nlmsghdr $hdr) {
   my $msg = nlmsg_alloc();
   $msg.put($*PID, $hdr.seq, NLMSG::ERROR, nativesizeof(nlmsghdr), 0);
 
-
-  # Error Code
   my nlmsgerr $buf .= new;
   $buf.error = 0;
   $buf.msg: $hdr;
   $msg.append(nativecast(Pointer[void], $buf), nativesizeof(nlmsgerr), 4);
+
   $!sock.send($msg);
 }
 
