@@ -2,11 +2,10 @@ use v6.d;
 use NativeCall;
 
 constant \LIB = 'nl-3';
-constant \NL_AUTO_SEQ is export = 0;
-constant \NL_AUTO_PID is export = 0;
-constant \NL_AUTO_PORT is export = 0;
-constant \AF_NETLINK is export = 16;
-#constant \HELPER = %?RESOURCES<libraries/ui>;
+constant \NL_AUTO_SEQ is export(:constants) = 0;
+constant \NL_AUTO_PID is export(:constants) = 0;
+constant \NL_AUTO_PORT is export(:constants) = 0;
+constant \AF_NETLINK is export(:constants) = 16;
 
 enum NLMSG is export(:socket :message :enums) (
   NOOP => 0x1,
