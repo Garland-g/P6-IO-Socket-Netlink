@@ -38,11 +38,11 @@ multi method new-message() returns nl_msg {
   nl_msg.new();
 }
 
-multi method new-message(NLMSG :$type, :@flags ) returns nl_msg {
+multi method new-message(NLMSG $type, @flags ) returns nl_msg {
   nl_msg.new($type, [+|] @flags);
 }
 
-multi method new-message(UInt :$max) returns nl_msg {
+multi method new-message(UInt $max) returns nl_msg {
   nl_msg.new($max);
 }
 
