@@ -7,7 +7,7 @@ has nl_sock $.sock;
 
 method port(UInt $port) { $!sock.set-local-port($port) }
 
-submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack?) {
+multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack?) {
   $!sock .= new();
   unless $!sock ~~ nl_sock:D {
     $!sock = Failure.new("Could not allocate socket");
@@ -21,8 +21,10 @@ submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack?) {
   if $!sock.connect($protocol) < 0 {
     $!sock = Failure.new("Could not connect socket");
   }
-  $!sock.disable-auto-ack if $auto-ack;
+  $!sock.disable-auto-ack unless $auto-ack;
 }
+
+multi submethod BUILD(nl_sock :$!sock) {}
 
 method close(\SELF --> Nil) {
   $!sock.close;

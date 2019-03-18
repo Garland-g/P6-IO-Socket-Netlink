@@ -6,6 +6,7 @@ constant \NL_AUTO_SEQ is export(:constants) = 0;
 constant \NL_AUTO_PID is export(:constants) = 0;
 constant \NL_AUTO_PORT is export(:constants) = 0;
 constant \AF_NETLINK is export(:constants) = 16;
+constant \NETLINK_ROUTE is export(:constants) = 0;
 
 enum NLMSG is export(:socket :message :enums) (
   NOOP => 0x1,
@@ -122,7 +123,7 @@ class nl_msg is repr('CStruct') is export(:message) {
   method expand(size_t $size) returns int32 {
     return nlmsg_expand(self, $size);
   }
-  method put(uint32 $pid, uint32 $seq, int32 $type, int32 $payload, int32 $flags) {
+  method put(uint32 $pid, uint32 $seq, int32 $type, int32 $payload, int32 $flags) returns nlmsghdr {
     nlmsg_put(self, $pid, $seq, $type, $payload, $flags);
   }
   method hdr() returns nlmsghdr {
@@ -149,7 +150,7 @@ class nl_sock is repr('CPointer') is export(:socket) {
   method free() {
     nl_socket_free(self);
   }
-  method get-fd() {
+  method get-fd() returns int32 {
     nl_socket_get_fd(self);
   }
   method get-local-port() returns uint32 {
@@ -182,7 +183,7 @@ class nl_sock is repr('CPointer') is export(:socket) {
   method drop-membership(int32 $membership) {
     nl_socket_drop_membership($membership);
   }
-  method connect(int32 $number) {
+  method connect(int32 $number) returns int32 {
     nl_connect(self, $number);
   }
   method close() {
@@ -220,7 +221,7 @@ class nl_sock is repr('CPointer') is export(:socket) {
 #Sockets
 sub nl_socket_alloc() returns nl_sock is native(LIB) is export(:socket) { * }
 sub nl_socket_free(nl_sock:D) is native(LIB) is export(:socket) { * }
-sub nl_socket_get_fd(nl_sock:D) is native(LIB) is export(:socket) { * }
+sub nl_socket_get_fd(nl_sock:D) returns int32 is native(LIB) is export(:socket) { * }
 sub nl_socket_get_local_port(nl_sock:D) returns uint32 is native(LIB) is export(:socket) { * }
 sub nl_socket_set_local_port(nl_sock:D, uint32) is native(LIB) is export(:socket) { * }
 sub nl_socket_enable_auto_ack(nl_sock:D) is native(LIB) is export(:socket) { * }
