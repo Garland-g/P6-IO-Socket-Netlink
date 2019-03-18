@@ -1,11 +1,10 @@
 use v6;
 use Test;
-use IO::Socket::Netlink::Raw;
 use NativeCall;
 
-plan *;
+plan 1;
 
-pass 'load library';
+use-ok "IO::Socket::Netlink", <Load library>;
 
 done-testing;
 

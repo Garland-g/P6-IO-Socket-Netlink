@@ -1,6 +1,6 @@
 use v6;
 use Test;
-use IO::Socket::Netlink::Raw :socket;
+use IO::Socket::Netlink::Raw :socket :constants;
 use NativeCall;
 
 plan *;
