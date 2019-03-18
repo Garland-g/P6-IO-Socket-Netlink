@@ -1,10 +1,11 @@
 {
+  "auth" : "Travis Gibson",
   "authors" : [
     "Travis Gibson"
   ],
   "build-depends" : [ ],
   "depends" : [ ],
-  "description" : "blah blah blah",
+  "description" : "A Perl6 binding to and wrapper around libnl",
   "license" : "Artistic-2.0",
   "name" : "IO::Socket::Netlink",
   "perl" : "6.c",
