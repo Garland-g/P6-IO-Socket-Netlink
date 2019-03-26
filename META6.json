@@ -4,7 +4,9 @@
     "Travis Gibson"
   ],
   "build-depends" : [ ],
-  "depends" : [ ],
+  "depends" : [
+    "OO::Monitors"
+  ],
   "description" : "A Perl6 binding to and wrapper around libnl",
   "license" : "Artistic-2.0",
   "name" : "IO::Socket::Netlink",

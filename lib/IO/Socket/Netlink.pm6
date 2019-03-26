@@ -1,8 +1,9 @@
 use v6.d;
 use IO::Socket::Netlink::Raw :socket, :message;
+use OO::Monitors;
 use NativeCall;
 
-unit class IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
+unit monitor IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
 has nl_sock $.sock;
 
 method port(UInt $port) { $!sock.set-local-port($port) }
