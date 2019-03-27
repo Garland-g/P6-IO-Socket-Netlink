@@ -27,6 +27,12 @@ my buf8 $buf .= new(16);
 $socket.send($buf, :type(NLMSG::DONE), :flags(NLM_F::REQUEST, NLM_F::ACK));
 
 # For more control, see the new-message, send-nlmsg, and recv-nlmsg methods.
+# Many of the libnl subs are available as methods on their respective objects.
+# This example is equivalent to the $socket.send example command
+my $msg = $socket.new-message(NLMSG::DONE, :flags(NLM_F::REQUEST, NLM_F::ACK));
+$msg.append($buf, $buf.bytes, 4); # calls nlmsg_append method from libnl
+$socket.send-nlmsg($msg);
+$socket.wait-for-ack();
 
 =end code
 
@@ -64,7 +70,8 @@ has nl_sock $.sock;
 method port(UInt $port) { $!sock.set-local-port($port) }
 #= Set the port of the socket
 
-multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack?) {
+#| port is often the PID of the process
+multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? = True) {
   $!sock .= new();
   unless $!sock ~~ nl_sock:D {
     $!sock = Failure.new("Could not allocate socket");
@@ -80,10 +87,9 @@ multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack?) 
   }
   $!sock.disable-auto-ack unless $auto-ack;
 }
-#= port is often the PID of the process
 
+#| Create a socket from a raw nl_sock
 multi submethod BUILD(nl_sock :$!sock) {}
-#= Create a socket from a raw nl_sock
 
 method !Nil(\SELF) returns Nil {
   SELF = Nil;
@@ -104,28 +110,28 @@ method sockpid() returns Int {
 #= get the file descriptor
 
 
+#| allocate a new message. Free with $msg.free().
 multi method new-message() returns nl_msg {
   nl_msg.new();
 }
-#= allocate a new message. Free with $msg.free().
 
 
+#| allocate a new message with the type and a list of flags.
 multi method new-message(NLMSG :$type, :@flags ) returns nl_msg {
   self.new-message(:$type, :flags([+|] @flags));
 }
-#= allocate a new message with the type and a list of flags.
 
 
+#| allocate a new message with the type and the flags
 multi method new-message(NLMSG :$type, :$flags ) returns nl_msg {
   nl_msg.new(:$type, :$flags);
 }
-#= allocate a new message with the type and the flags
 
 
+#| allocate a new message with a maximum payload size
 multi method new-message(UInt :$max) returns nl_msg {
   nl_msg.new($max);
 }
-#= allocate a new message with a maximum payload size
 
 
 method send-nlmsg(nl_msg:D $msg) returns Int {
@@ -134,20 +140,19 @@ method send-nlmsg(nl_msg:D $msg) returns Int {
 }
 #= send a raw nl_msg (like nl_send_auto)
 
-
+#| send a buf8 with the given type and flags
 multi method send(buf8 $buf, NLMSG :$type, :$flags) returns Int {
   my $msg = self.new-message(:$type, :$flags);
   $msg.append(nativecast(Pointer[void], $buf), $buf.bytes, 4);
   self.send-nlmsg($msg);
   $!sock.wait-for-ack() if $flags +| NLM_F::ACK;
 }
-#= send a buf8 with the given type and flags
 
 
+#| send a buf8 with the given type and a list of flags
 multi method send(buf8 $buf, NLMSG :$type, :@flags) returns Int {
   self.send($buf, :$type, :flags([+|] @flags));
 }
-#= send a buf8 with the given type and a list of flags
 
 
 method send-ack(nlmsghdr $hdr) returns Int {

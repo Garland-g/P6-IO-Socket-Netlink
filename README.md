@@ -24,6 +24,12 @@ my buf8 $buf .= new(16);
 $socket.send($buf, :type(NLMSG::DONE), :flags(NLM_F::REQUEST, NLM_F::ACK));
 
 # For more control, see the new-message, send-nlmsg, and recv-nlmsg methods.
+# Many of the libnl subs are available as methods on their respective objects.
+# This example is equivalent to the $socket.send example command
+my $msg = $socket.new-message(NLMSG::DONE, :flags(NLM_F::REQUEST, NLM_F::ACK));
+$msg.append($buf, $buf.bytes, 4); # calls nlmsg_append method from libnl
+$socket.send-nlmsg($msg);
+$socket.wait-for-ack();
 ```
 
 DESCRIPTION
@@ -62,6 +68,16 @@ method port(
 
 Set the port of the socket
 
+class multi submethod BUILD (IO::Socket::Netlink: Int :$protocol!, Int :$port, Int :$groups, :$auto-ack = Bool::True, *%_) { #`(Submethod|94150169458472) ... }
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+port is often the PID of the process
+
+class multi submethod BUILD (IO::Socket::Netlink: nl_sock :sock($!sock), *%_) { #`(Submethod|94150157286824) ... }
+------------------------------------------------------------------------------------------------------------------
+
+Create a socket from a raw nl_sock
+
 ### method close
 
 ```perl6
@@ -78,6 +94,46 @@ method sockpid() returns Int
 
 get the file descriptor
 
+### multi method new-message
+
+```perl6
+multi method new-message() returns nl_msg
+```
+
+allocate a new message. Free with $msg.free().
+
+### multi method new-message
+
+```perl6
+multi method new-message(
+    NLMSG :$type,
+    :@flags
+) returns nl_msg
+```
+
+allocate a new message with the type and a list of flags.
+
+### multi method new-message
+
+```perl6
+multi method new-message(
+    NLMSG :$type,
+    :$flags
+) returns nl_msg
+```
+
+allocate a new message with the type and the flags
+
+### multi method new-message
+
+```perl6
+multi method new-message(
+    Int :$max where { ... }
+) returns nl_msg
+```
+
+allocate a new message with a maximum payload size
+
 ### method send-nlmsg
 
 ```perl6
@@ -87,6 +143,30 @@ method send-nlmsg(
 ```
 
 send a raw nl_msg (like nl_send_auto)
+
+### multi method send
+
+```perl6
+multi method send(
+    Buf[uint8] $buf,
+    NLMSG :$type,
+    :$flags
+) returns Int
+```
+
+send a buf8 with the given type and flags
+
+### multi method send
+
+```perl6
+multi method send(
+    Buf[uint8] $buf,
+    NLMSG :$type,
+    :@flags
+) returns Int
+```
+
+send a buf8 with the given type and a list of flags
 
 ### method send-ack
 
