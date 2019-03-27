@@ -117,11 +117,8 @@ class nl_msg is repr('CStruct') is export(:message) {
   method reserve(size_t $size, int32 $pad) returns Pointer[void] {
     return nlmsg_reserve(self, $size, $pad);
   }
-  multi method append(Pointer[void] $data, size_t $len, int32 $pad) {
-    nlmsg_append(self, $data, $len, $pad);
-  }
-  multi method append($data, size_t $len, int32 $pad) {
-    self.append(nativecast(Pointer[void], $data), $len, $pad);
+  method append($data, size_t $len, int32 $pad) {
+    nlmsg_append(self, nativecast(Pointer[void], $data), $len, $pad);
   }
   method expand(size_t $size) returns int32 {
     return nlmsg_expand(self, $size);
