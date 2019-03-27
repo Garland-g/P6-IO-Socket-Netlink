@@ -12,9 +12,9 @@ use IO::Socket::Netlink::Raw :enums :constants;
 # access to useful enums and constants (probably what you want)
 
 # use IO::Socket::Netlink::Raw :message
-# access to raw message methods, objects, and message components
+# access to raw message subs, objects, and message components
 # use IO::Socket::Netlink::Raw :socket
-# access to raw socket methods and object
+# access to raw socket subs and object
 
 my $protocol = 31;
 my $socket = IO::Socket::Netlink.new(:$protocol);
