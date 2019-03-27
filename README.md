@@ -68,13 +68,26 @@ method port(
 
 Set the port of the socket
 
-class multi submethod BUILD (IO::Socket::Netlink: Int :$protocol!, Int :$port, Int :$groups, :$auto-ack = Bool::True, *%_) { #`(Submethod|94150169458472) ... }
----------------------------------------------------------------------------------------------------------------------------------------------------------------
+### multi method new
+
+```perl6
+multi method new(
+    Int :$protocol!,
+    Int :$port,
+    Int :$groups,
+    :$auto-ack = Bool::True
+) returns Mu
+```
 
 port is often the PID of the process
 
-class multi submethod BUILD (IO::Socket::Netlink: nl_sock :sock($!sock), *%_) { #`(Submethod|94150157286824) ... }
-------------------------------------------------------------------------------------------------------------------
+### multi method new
+
+```perl6
+multi method new(
+    nl_sock :$sock
+) returns Mu
+```
 
 Create a socket from a raw nl_sock
 

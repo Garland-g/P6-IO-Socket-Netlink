@@ -70,7 +70,6 @@ has nl_sock $.sock;
 method port(UInt $port) { $!sock.set-local-port($port) }
 #= Set the port of the socket
 
-#| port is often the PID of the process
 multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? = True) {
   $!sock .= new();
   unless $!sock ~~ nl_sock:D {
@@ -88,8 +87,17 @@ multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? =
   $!sock.disable-auto-ack unless $auto-ack;
 }
 
-#| Create a socket from a raw nl_sock
 multi submethod BUILD(nl_sock :$!sock) {}
+
+#| port is often the PID of the process
+multi method new(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? = True) returns IO::Socket::Netlink {
+  return self.bless(:$protocol, :$port, :$groups, :$auto-ack);
+}
+
+#| Create a socket from a raw nl_sock
+multi method new(nl_sock :$sock) returns IO::Socket::Netlink {
+  return self.bless(:$sock);
+}
 
 method !Nil(\SELF) returns Nil {
   SELF = Nil;
