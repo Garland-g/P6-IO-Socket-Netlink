@@ -89,7 +89,7 @@ method !Nil(\SELF) returns Nil {
   SELF = Nil;
 }
 
-#| returns Nil
+
 method close() returns Nil {
   $!sock.close;
   $!sock.free;
@@ -97,44 +97,44 @@ method close() returns Nil {
 }
 #= Close a socket and free it. The socket becomes Nil.
 
-#| returns Int
+
 method sockpid() returns Int {
   return $!sock.get-fd;
 }
 #= get the file descriptor
 
-#| returns nl_msg
+
 multi method new-message() returns nl_msg {
   nl_msg.new();
 }
 #= allocate a new message. Free with $msg.free().
 
-#| returns nl_msg
+
 multi method new-message(NLMSG :$type, :@flags ) returns nl_msg {
   self.new-message(:$type, :flags([+|] @flags));
 }
 #= allocate a new message with the type and a list of flags.
 
-#| returns nl_msg
+
 multi method new-message(NLMSG :$type, :$flags ) returns nl_msg {
   nl_msg.new(:$type, :$flags);
 }
 #= allocate a new message with the type and the flags
 
-#| returns nl_msg
+
 multi method new-message(UInt :$max) returns nl_msg {
   nl_msg.new($max);
 }
 #= allocate a new message with a maximum payload size
 
-#| returns Int
+
 method send-nlmsg(nl_msg:D $msg) returns Int {
   $!sock.complete-msg($msg);
   return $!sock.send($msg);
 }
 #= send a raw nl_msg (like nl_send_auto)
 
-#| returns Int
+
 multi method send(buf8 $buf, NLMSG :$type, :$flags) returns Int {
   my $msg = self.new-message(:$type, :$flags);
   $msg.append(nativecast(Pointer[void], $buf), $buf.bytes, 4);
@@ -143,13 +143,13 @@ multi method send(buf8 $buf, NLMSG :$type, :$flags) returns Int {
 }
 #= send a buf8 with the given type and flags
 
-#| returns Int
+
 multi method send(buf8 $buf, NLMSG :$type, :@flags) returns Int {
   self.send($buf, :$type, :flags([+|] @flags));
 }
 #= send a buf8 with the given type and a list of flags
 
-#| returns Int
+
 method send-ack(nlmsghdr $hdr) returns Int {
   my $msg = nlmsg_alloc();
   $msg.put($*PID, $hdr.seq, NLMSG::ERROR, nativesizeof(nlmsghdr), 0);
@@ -163,7 +163,7 @@ method send-ack(nlmsghdr $hdr) returns Int {
 }
 #= send an acknowledgement message for a given header
 
-#| returns nlmsghdr
+
 method recv-nlmsg(Int $maxlen) returns nlmsghdr {
   my sockaddr_nl $addr .= new;
   my $p = Pointer.new;
@@ -174,7 +174,7 @@ method recv-nlmsg(Int $maxlen) returns nlmsghdr {
 }
 #= receive a raw nlmsg as an nlmsghdr
 
-#| returns Pointer[void]
+
 method recv(Int $maxlen, :$ack) returns Pointer[void] {
   my nlmsghdr $msg = self.recv-nlmsg($maxlen);
   self.send-ack($msg) if $ack || $msg.flags +& NLM_F::ACK;
@@ -182,7 +182,7 @@ method recv(Int $maxlen, :$ack) returns Pointer[void] {
 }
 #= receive a message and get a Pointer to its contents
 
-#| returns Int
+
 method wait-for-ack() returns Int {
   return $!sock.wait-for-ack;
 }
