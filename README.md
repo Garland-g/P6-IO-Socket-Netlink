@@ -58,16 +58,6 @@ The underlying library in use is libnl-3, which is LGPL v2.1.
 DOCS
 ====
 
-### method port
-
-```perl6
-method port(
-    Int $port where { ... }
-) returns Mu
-```
-
-Set the port of the socket
-
 ### multi method new
 
 ```perl6
@@ -76,7 +66,7 @@ multi method new(
     Int :$port,
     Int :$groups,
     :$auto-ack = Bool::True
-) returns Mu
+) returns IO::Socket::Netlink
 ```
 
 port is often the PID of the process
@@ -86,7 +76,7 @@ port is often the PID of the process
 ```perl6
 multi method new(
     nl_sock :$sock
-) returns Mu
+) returns IO::Socket::Netlink
 ```
 
 Create a socket from a raw nl_sock
@@ -98,6 +88,16 @@ method close() returns Nil
 ```
 
 Close a socket and free it. The socket becomes Nil.
+
+### method port
+
+```perl6
+method port(
+    Int $port where { ... }
+) returns Mu
+```
+
+Set the port of the socket
 
 ### method sockpid
 

@@ -67,9 +67,6 @@ use NativeCall;
 unit monitor IO::Socket::Netlink:ver<0.0.1> does IO::Socket is export;
 has nl_sock $.sock;
 
-method port(UInt $port) { $!sock.set-local-port($port) }
-#= Set the port of the socket
-
 multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? = True) {
   $!sock .= new();
   unless $!sock ~~ nl_sock:D {
@@ -87,17 +84,21 @@ multi submethod BUILD(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? =
   $!sock.disable-auto-ack unless $auto-ack;
 }
 
+
 multi submethod BUILD(nl_sock :$!sock) {}
+
 
 #| port is often the PID of the process
 multi method new(Int :$protocol!, Int :$port?, Int :$groups?, :$auto-ack? = True) returns IO::Socket::Netlink {
   return self.bless(:$protocol, :$port, :$groups, :$auto-ack);
 }
 
+
 #| Create a socket from a raw nl_sock
 multi method new(nl_sock :$sock) returns IO::Socket::Netlink {
   return self.bless(:$sock);
 }
+
 
 method !Nil(\SELF) returns Nil {
   SELF = Nil;
@@ -110,6 +111,10 @@ method close() returns Nil {
   self!Nil;
 }
 #= Close a socket and free it. The socket becomes Nil.
+
+
+method port(UInt $port) { $!sock.set-local-port($port) }
+#= Set the port of the socket
 
 
 method sockpid() returns Int {
@@ -147,6 +152,7 @@ method send-nlmsg(nl_msg:D $msg) returns Int {
   return $!sock.send($msg);
 }
 #= send a raw nl_msg (like nl_send_auto)
+
 
 #| send a buf8 with the given type and flags
 multi method send(buf8 $buf, NLMSG :$type, :$flags) returns Int {
